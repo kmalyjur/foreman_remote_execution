@@ -9,6 +9,7 @@ import {
 } from '@patternfly/react-core';
 import DefaultLoaderEmptyState from 'foremanReact/components/HostDetails/DetailsCard/DefaultLoaderEmptyState';
 import { translate as __, documentLocale } from 'foremanReact/common/I18n';
+import { DATE_OPTIONS } from './JobInvocationConstants';
 
 const JobInvocationOverview = ({ data }) => {
   const {
@@ -19,30 +20,16 @@ const JobInvocationOverview = ({ data }) => {
     effective_user: effectiveUser,
     permissions,
   } = data;
+
   const canEditJobTemplates = permissions
     ? permissions.edit_job_templates
     : false;
-  const dateOptions = {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZoneName: 'short',
-  };
-  let formattedStartDate = __('Not yet');
-
-  if (startAt) {
-    // Ensures date string compatibility across browsers
-    const convertedDate = new Date(startAt.replace(/[-.]/g, '/'));
-    if (convertedDate.getTime() <= new Date().getTime()) {
-      formattedStartDate = convertedDate.toLocaleString(
-        documentLocale(),
-        dateOptions
-      );
-    }
-  }
+  const dateConverted = new Date(startAt);
+  const dateLocaleFormatted = dateConverted.toLocaleString(
+    documentLocale(),
+    DATE_OPTIONS
+  );
+  const dateCurrent = new Date();
 
   return (
     <DescriptionList
@@ -63,7 +50,9 @@ const JobInvocationOverview = ({ data }) => {
       <DescriptionListGroup>
         <DescriptionListTerm>{__('Started at:')}</DescriptionListTerm>
         <DescriptionListDescription>
-          {formattedStartDate}
+          {startAt && dateConverted.getTime() <= dateCurrent.getTime()
+            ? dateLocaleFormatted
+            : __('Not yet')}
         </DescriptionListDescription>
       </DescriptionListGroup>
       <DescriptionListGroup>

@@ -8,6 +8,7 @@ import { stopInterval } from 'foremanReact/redux/middlewares/IntervalMiddleware'
 import { getData } from './JobInvocationActions';
 import { selectItems } from './JobInvocationSelectors';
 import JobInvocationOverview from './JobInvocationOverview';
+import AdditionalInformation from './AdditionalInformation';
 import { JOB_INVOCATION_KEY, STATUS } from './JobInvocationConstants';
 
 const JobInvocationDetailPage = ({
@@ -59,6 +60,11 @@ const JobInvocationDetailPage = ({
             <FlexItem>
               <JobInvocationOverview data={items} />
             </FlexItem>
+          </Flex>
+        </PageSection>
+        <PageSection isFilled variant="light">
+          <Flex>
+            <AdditionalInformation data={items} />
           </Flex>
         </PageSection>
       </React.Fragment>
