@@ -1,17 +1,5 @@
-import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  Divider,
-  Flex,
-  PageSection,
-  PageSectionVariants,
-} from '@patternfly/react-core';
-import { translate as __, documentLocale } from 'foremanReact/common/I18n';
-import PageLayout from 'foremanReact/routes/common/PageLayout/PageLayout';
-import { useAPI } from 'foremanReact/common/hooks/API/APIHooks';
-import { stopInterval } from 'foremanReact/redux/middlewares/IntervalMiddleware';
-import { getJobInvocation, getTask } from './JobInvocationActions';
+import './JobInvocationDetail.scss';
+
 import {
   CURRENT_PERMISSIONS,
   DATE_OPTIONS,
@@ -19,13 +7,27 @@ import {
   STATUS,
   currentPermissionsUrl,
 } from './JobInvocationConstants';
-import './JobInvocationDetail.scss';
+import {
+  Divider,
+  Flex,
+  PageSection,
+  PageSectionVariants,
+} from '@patternfly/react-core';
+import React, { useEffect, useState } from 'react';
+import { translate as __, documentLocale } from 'foremanReact/common/I18n';
+import { getJobInvocation, getTask } from './JobInvocationActions';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { JobAdditionInfo } from './JobAdditionInfo';
+import JobInvocationHostTable from './JobInvocationHostTable';
 import JobInvocationOverview from './JobInvocationOverview';
-import { selectItems } from './JobInvocationSelectors';
 import JobInvocationSystemStatusChart from './JobInvocationSystemStatusChart';
 import JobInvocationToolbarButtons from './JobInvocationToolbarButtons';
-import JobInvocationHostTable from './JobInvocationHostTable';
-import { JobAdditionInfo } from './JobAdditionInfo';
+import PageLayout from 'foremanReact/routes/common/PageLayout/PageLayout';
+import PropTypes from 'prop-types';
+import { selectItems } from './JobInvocationSelectors';
+import { stopInterval } from 'foremanReact/redux/middlewares/IntervalMiddleware';
+import { useAPI } from 'foremanReact/common/hooks/API/APIHooks';
 
 const JobInvocationDetailPage = ({
   match: {
@@ -57,16 +59,25 @@ const JobInvocationDetailPage = ({
     setSelectedFilter(filter);
   };
 
+  console.log("startAt ", startAt);
+  console.log("Date ", Date.now());
+  console.log("startAt? ", startAt ? true : false);
+
   let isAlreadyStarted = false;
   let formattedStartDate;
   if (startAt) {
     // Ensures date string compatibility across browsers
-    const convertedDate = new Date(startAt.replace(/[-.]/g, '/'));
-    isAlreadyStarted = convertedDate.getTime() <= new Date().getTime();
+    const isoStartAt = startAt.replace(" ", "T").replace(/(-\d{2})(\d{2})$/, "$1:$2").replace(" ", "");
+    const convertedDate = new Date(isoStartAt);
+    console.log("isoStartAt ", isoStartAt);
+    console.log("convertedDate ", convertedDate);
+    isAlreadyStarted = (convertedDate.getTime() <= new Date().getTime()) || status ===;
+    console.log("isAlreadyStarted ", isAlreadyStarted);
     formattedStartDate = convertedDate.toLocaleString(
       documentLocale(),
       DATE_OPTIONS
     );
+    console.log("formattedStartDate ", formattedStartDate);
   }
 
   useEffect(() => {
@@ -98,7 +109,7 @@ const JobInvocationDetailPage = ({
   return (
     <>
       <PageLayout
-        header={description}
+        header={"TEST"}
         breadcrumbOptions={breadcrumbOptions}
         toolbarButtons={
           <JobInvocationToolbarButtons
