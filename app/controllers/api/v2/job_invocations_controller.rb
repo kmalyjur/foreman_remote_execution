@@ -19,13 +19,16 @@ module Api
 
       api :GET, '/job_invocations/:id', N_('Show job invocation')
       param :id, :identifier, :required => true
-      param :host_status, :bool, required: false, desc: N_('Show Job status for the hosts')
+      param :include_hosts, :bool, :required => false, :default_value => true, :desc => N_('Include hosts and template invocations in the response. Defaults to true for backwards compatibility. Pass false to skip serializing all hosts.')
+      param :host_status, :bool, :required => false, :default_value => false, :desc => N_('Show job status for each host, only applicable when include_hosts is true')
       def show
-        set_hosts_and_template_invocations
+        @pattern_template_invocations = @job_invocation.pattern_template_invocations.includes(:input_values)
         @job_organization = Taxonomy.find_by(id: @job_invocation.task.input[:current_organization_id])
         @job_location = Taxonomy.find_by(id: @job_invocation.task.input[:current_location_id])
-        if params[:host_status] == 'true'
-          set_statuses_and_smart_proxies
+
+        if include_hosts?
+          set_hosts_and_template_invocations
+          set_statuses_and_smart_proxies if Foreman::Cast.to_bool(params[:host_status])
         end
       end
 
@@ -84,13 +87,14 @@ module Api
 
       api :POST, '/job_invocations/', N_('Create a job invocation')
       param_group :job_invocation, :as => :create
+      param :include_hosts, :bool, :required => false, :default_value => true, :desc => N_('Include hosts and template invocations in the response. Defaults to true for backwards compatibility. Pass false to skip serializing all hosts.')
       def create
         composer = JobInvocationComposer.from_api_params(
           job_invocation_params
         )
         composer.trigger!
         @job_invocation = composer.job_invocation
-        @hosts = @job_invocation.targeting.hosts
+        set_hosts_and_template_invocations if include_hosts?
         process_response @job_invocation
       rescue JobInvocationComposer::JobTemplateNotFound, JobInvocationComposer::FeatureNotFound => e
         not_found(error: { message: e.message })
@@ -298,7 +302,6 @@ module Api
       end
 
       def set_hosts_and_template_invocations
-        @pattern_template_invocations = @job_invocation.pattern_template_invocations.includes(:input_values)
         @hosts = @job_invocation.targeting.hosts.authorized(:view_hosts, Host)
 
         if params[:search].present?
@@ -308,6 +311,10 @@ module Api
         @template_invocations = @job_invocation.template_invocations
                                                .where(host: @hosts)
                                                .includes(:input_values)
+      end
+
+      def include_hosts?
+        params[:include_hosts].nil? || Foreman::Cast.to_bool(params[:include_hosts])
       end
 
       def set_statuses_and_smart_proxies
