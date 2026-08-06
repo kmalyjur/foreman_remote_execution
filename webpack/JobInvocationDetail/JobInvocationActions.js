@@ -5,6 +5,7 @@ import {
   CANCEL_JOB,
   CANCEL_RECURRING_LOGIC,
   CHANGE_ENABLED_RECURRING_LOGIC,
+  FETCH_REPORT,
   JOB_INVOCATION_KEY,
   STATUS,
 } from './JobInvocationConstants';
@@ -68,7 +69,7 @@ export const getJobInvocation = (url, pollTimeoutRef) => dispatch => {
 export const stopJobInvocationPolling = pollTimeoutRef => {
   clearTimeout(pollTimeoutRef.current.timeoutId);
   pollTimeoutRef.current.cancel();
-  pollTimeoutRef.current = createPollState(() => {});
+  pollTimeoutRef.current = createPollState(() => { });
 };
 
 export const cancelJob = (jobId, force) => dispatch => {
@@ -87,15 +88,15 @@ export const cancelJob = (jobId, force) => dispatch => {
       errorToast: ({ response }) =>
         force
           ? sprintf(
-              __('Could not abort the job %s: %s'),
-              jobId,
-              extractErrorMessage(response)
-            )
+            __('Could not abort the job %s: %s'),
+            jobId,
+            extractErrorMessage(response)
+          )
           : sprintf(
-              __('Could not cancel the job %s: %s'),
-              jobId,
-              extractErrorMessage(response)
-            ),
+            __('Could not cancel the job %s: %s'),
+            jobId,
+            extractErrorMessage(response)
+          ),
       handleSuccess: () => {
         dispatch(
           addToast({
@@ -124,15 +125,15 @@ export const enableRecurringLogic = (recurrenceId, enabled) => dispatch => {
       errorToast: ({ response }) =>
         enabled
           ? sprintf(
-              __('Could not disable recurring logic %s: %s'),
-              recurrenceId,
-              extractErrorMessage(response)
-            )
+            __('Could not disable recurring logic %s: %s'),
+            recurrenceId,
+            extractErrorMessage(response)
+          )
           : sprintf(
-              __('Could not enable recurring logic %s: %s'),
-              recurrenceId,
-              extractErrorMessage(response)
-            ),
+            __('Could not enable recurring logic %s: %s'),
+            recurrenceId,
+            extractErrorMessage(response)
+          ),
     })
   );
 };
@@ -150,6 +151,25 @@ export const cancelRecurringLogic = recurrenceId => dispatch => {
         sprintf(
           __('Could not cancel recurring logic %s: %s'),
           recurrenceId,
+          extractErrorMessage(response)
+        ),
+    })
+  );
+};
+
+export const fetchReport = jobId => dispatch => {
+  const url = `/api/v2/job_invocations/${jobId}/report`;
+  dispatch(
+    APIActions.get({
+      url,
+      key: FETCH_REPORT,
+      handleSuccess: ({ data: { report_url: reportUrl } }) => {
+        window.location.href = reportUrl;
+      },
+      errorToast: ({ response }) =>
+        sprintf(
+          __('Could not create report for job %s: %s'),
+          jobId,
           extractErrorMessage(response)
         ),
     })
